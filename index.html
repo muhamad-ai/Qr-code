@@ -141,11 +141,93 @@
     color:var(--cream-dim); font-size:12px;
     font-family:'Vazirmatn', sans-serif;
   }
+
+  /* ============ ANIMATIONS ============ */
+
+  /* floating embers in the hero */
+  .ember-particle{
+    position:absolute;
+    bottom:-10px;
+    width:4px; height:4px;
+    border-radius:50%;
+    background:var(--flame);
+    box-shadow:0 0 6px 2px rgba(232,98,44,0.7);
+    opacity:0;
+    animation:rise 6s ease-in infinite;
+    pointer-events:none;
+  }
+  @keyframes rise{
+    0%{ transform:translateY(0) translateX(0); opacity:0; }
+    10%{ opacity:1; }
+    90%{ opacity:0.6; }
+    100%{ transform:translateY(-260px) translateX(var(--drift,10px)); opacity:0; }
+  }
+
+  /* hero entrance */
+  .logo-wrap{ opacity:0; animation:fadeUp .9s ease forwards; }
+  .hero h1{ opacity:0; animation:fadeUp .9s ease forwards; animation-delay:.15s; }
+  .hero p.tag{ opacity:0; animation:fadeUp .9s ease forwards; animation-delay:.28s; }
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(16px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  /* gentle logo pulse */
+  .restaurant-logo{ animation:logoPulse 5s ease-in-out infinite; }
+  @keyframes logoPulse{
+    0%,100%{ filter:drop-shadow(0 0 0 rgba(232,98,44,0)); }
+    50%{ filter:drop-shadow(0 0 14px rgba(232,98,44,0.35)); }
+  }
+
+  /* category scroll-reveal */
+  .category{
+    opacity:0;
+    transform:translateY(24px);
+    transition:opacity .7s ease, transform .7s ease;
+  }
+  .category.in-view{
+    opacity:1;
+    transform:translateY(0);
+  }
+
+  /* item row hover / stagger */
+  .item{
+    transition:background .25s ease, padding-right .25s ease;
+  }
+  .item:hover{
+    background:rgba(232,98,44,0.06);
+    padding-right:8px;
+    border-radius:8px;
+  }
+  .item:hover .item-price{
+    text-shadow:0 0 10px rgba(212,162,76,0.6);
+  }
+  .item-price{ transition:text-shadow .25s ease; }
+
+  /* cat icon gentle glow pulse */
+  .cat-icon{ animation:iconPulse 2.4s ease-in-out infinite; }
+  @keyframes iconPulse{
+    0%,100%{ box-shadow:0 0 10px 2px rgba(232,98,44,0.55); }
+    50%{ box-shadow:0 0 16px 4px rgba(232,98,44,0.85); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .logo-wrap, .hero h1, .hero p.tag, .category, .restaurant-logo, .cat-icon, .ember-particle{
+      animation:none !important;
+      transition:none !important;
+      opacity:1 !important;
+      transform:none !important;
+    }
+  }
 </style>
 </head>
 <body>
 
 <div class="hero">
+  <span class="ember-particle" style="left:20%; animation-delay:0s; --drift:14px;"></span>
+  <span class="ember-particle" style="left:45%; animation-delay:1.8s; --drift:-10px;"></span>
+  <span class="ember-particle" style="left:65%; animation-delay:3.2s; --drift:8px;"></span>
+  <span class="ember-particle" style="left:80%; animation-delay:.9s; --drift:-14px;"></span>
   <div class="logo-wrap"><img src="images/logo.png" alt="Logo" class="restaurant-logo"></div>
   <h1>ڕیستۆرانتی یادی گەشتیاری</h1>
   <div class="ember-line"></div>
@@ -212,6 +294,19 @@
 <div class="footer-note">
   ڕیستۆرانتی یادی گەشتیاری — بەخێربێن بۆ تامی ڕاستەقینەی خواردن
 </div>
+
+<script>
+  const cats = document.querySelectorAll('.category');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('in-view'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  cats.forEach(cat => observer.observe(cat));
+</script>
 
 </body>
 </html>
