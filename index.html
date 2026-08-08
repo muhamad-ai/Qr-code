@@ -307,6 +307,75 @@
     font-size:14px; font-weight:600;
     color:var(--brass);
   }
+
+  .cart-info{ cursor:pointer; }
+  .cart-info .review-hint{
+    display:block; font-size:11px; color:var(--flame); margin-top:2px;
+  }
+
+  .review-overlay{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.6);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:60;
+  }
+  .review-overlay.open{ display:flex; }
+  .review-sheet{
+    width:100%; max-width:640px;
+    background:var(--char-black-2);
+    border:1px solid var(--line);
+    border-radius:20px 20px 0 0;
+    padding:24px 22px calc(20px + env(safe-area-inset-bottom));
+    max-height:75vh;
+    overflow-y:auto;
+    animation:sheetUp .3s ease;
+  }
+  @keyframes sheetUp{
+    from{ transform:translateY(30px); opacity:0; }
+    to{ transform:translateY(0); opacity:1; }
+  }
+  .review-head{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:16px;
+  }
+  .review-head h3{
+    font-family:'Noto Kufi Arabic', sans-serif;
+    font-size:19px; color:var(--brass);
+  }
+  .review-close{
+    background:none; border:none; color:var(--cream-dim);
+    font-size:22px; cursor:pointer; line-height:1; padding:4px;
+  }
+  .review-list{ margin-bottom:16px; }
+  .review-line{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 0;
+    border-bottom:1px dashed var(--line);
+    font-size:15px;
+  }
+  .review-line:last-child{ border-bottom:none; }
+  .review-line .rl-name{ color:var(--cream); font-weight:600; }
+  .review-line .rl-qty{ color:var(--cream-dim); font-size:13px; }
+  .review-line .rl-sub{ color:var(--brass); font-weight:700; white-space:nowrap; }
+  .review-total{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-top:14px; margin-top:6px;
+    border-top:1px solid var(--line);
+    font-size:17px; font-weight:700;
+  }
+  .review-total .rt-value{ color:var(--brass); font-size:19px; }
+  .review-send-btn{
+    width:100%; margin-top:18px;
+    background:var(--flame); color:var(--char-black);
+    border:none; border-radius:12px;
+    padding:14px; font-size:15px; font-weight:700;
+    font-family:'Vazirmatn', sans-serif;
+    cursor:pointer;
+    transition:background .2s ease;
+  }
+  .review-send-btn:hover{ background:var(--brass); }
 </style>
 </head>
 <body>
@@ -443,8 +512,26 @@
 <a href="tel:+9647702428266" class="call-fab" aria-label="پەیوەندی تەلەفۆنی">📞</a>
 
 <div class="cart-bar" id="cartBar">
-  <div class="cart-info"><b id="cartCount">0</b> خواردن — <b id="cartTotal">0</b> دینار</div>
+  <div class="cart-info" onclick="openReview()">
+    <b id="cartCount">0</b> خواردن — <b id="cartTotal">0</b> دینار
+    <span class="review-hint">کرتە بکە بۆ بینینی لیستەکە</span>
+  </div>
   <button class="cart-send-btn" onclick="sendOrder()">ناردنی داواکردن 📲</button>
+</div>
+
+<div class="review-overlay" id="reviewOverlay" onclick="if(event.target===this) closeReview()">
+  <div class="review-sheet">
+    <div class="review-head">
+      <h3>لیستی داواکارییەکەت</h3>
+      <button class="review-close" onclick="closeReview()">×</button>
+    </div>
+    <div class="review-list" id="reviewList"></div>
+    <div class="review-total">
+      <span>کۆی گشتی</span>
+      <span class="rt-value" id="reviewTotal">0 دینار</span>
+    </div>
+    <button class="review-send-btn" onclick="sendOrder()">ناردنی داواکردن بە واتساپ 📲</button>
+  </div>
 </div>
 
 <script>
@@ -481,14 +568,17 @@
   function updateCart(){
     let count = 0, total = 0;
     const lines = [];
+    const details = [];
     document.querySelectorAll('.item').forEach(item => {
       const qty = parseInt(item.querySelector('.qty-value').textContent);
       if(qty > 0){
         const name = item.dataset.name;
         const price = parseInt(item.dataset.price);
+        const subtotal = qty * price;
         count += qty;
-        total += qty * price;
-        lines.push(`${name} × ${qty} = ${(qty*price).toLocaleString()} دینار`);
+        total += subtotal;
+        lines.push(`${name} × ${qty} = ${subtotal.toLocaleString()} دینار`);
+        details.push({ name, qty, subtotal });
       }
     });
     document.getElementById('cartCount').textContent = count;
@@ -496,6 +586,30 @@
     document.getElementById('cartBar').style.display = count > 0 ? 'flex' : 'none';
     window._orderLines = lines;
     window._orderTotal = total;
+    window._orderDetails = details;
+    renderReview();
+  }
+
+  function renderReview(){
+    const listEl = document.getElementById('reviewList');
+    const totalEl = document.getElementById('reviewTotal');
+    if(!listEl) return;
+    const details = window._orderDetails || [];
+    listEl.innerHTML = details.map(d => `
+      <div class="review-line">
+        <span class="rl-name">${d.name} <span class="rl-qty">× ${d.qty}</span></span>
+        <span class="rl-sub">${d.subtotal.toLocaleString()} دینار</span>
+      </div>
+    `).join('');
+    totalEl.textContent = `${(window._orderTotal||0).toLocaleString()} دینار`;
+  }
+
+  function openReview(){
+    if(!window._orderLines || window._orderLines.length === 0) return;
+    document.getElementById('reviewOverlay').classList.add('open');
+  }
+  function closeReview(){
+    document.getElementById('reviewOverlay').classList.remove('open');
   }
 
   function sendOrder(){
