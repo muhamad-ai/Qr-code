@@ -6,6 +6,21 @@
 <title>ڕیستۆرانتی یادی گەشتیاری — مینیو</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800&family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDAzyG5WwFrfUPJnaFO7fIBA3NwN8FK0mU",
+    authDomain: "yad-geshtyari.firebaseapp.com",
+    projectId: "yad-geshtyari",
+    storageBucket: "yad-geshtyari.firebasestorage.app",
+    messagingSenderId: "782129236842",
+    appId: "1:782129236842:web:be502f40877a0ec521b313",
+    measurementId: "G-CGZFX43634"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
 <style>
   :root{
     --char-black:#1a1613;
@@ -613,7 +628,26 @@
   }
 
   function sendOrder(){
-    if(!window._orderLines || window._orderLines.length === 0) return;
+    if(!window._orderDetails || window._orderDetails.length === 0) return;
+
+    const orderData = {
+      table: tableNum || "بەبێ ژمارە",
+      items: window._orderDetails,
+      total: window._orderTotal,
+      status: "new",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    db.collection("orders").add(orderData).then(() => {
+      showToast("✅ داواکارییەکەت نێردرا بۆ چێشتخانە!");
+      closeReview();
+      resetCart();
+    }).catch((err) => {
+      console.error(err);
+      showToast("⚠️ کێشەیەک ڕوویدا، تکایە دووبارە هەوڵبدەرەوە");
+    });
+
+    // also send via WhatsApp as a backup notification
     let msg = "سڵاو، دەمەوێت ئەم داواکارییە بکەم:\n\n";
     if(tableNum){
       msg += `📍 مێزی ${tableNum}\n\n`;
@@ -621,6 +655,31 @@
     msg += window._orderLines.join("\n");
     msg += `\n\nکۆی گشتی: ${window._orderTotal.toLocaleString()} دینار`;
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
+  function resetCart(){
+    document.querySelectorAll('.qty-value').forEach(el => el.textContent = '0');
+    updateCart();
+  }
+
+  function showToast(text){
+    let toast = document.getElementById('orderToast');
+    if(!toast){
+      toast = document.createElement('div');
+      toast.id = 'orderToast';
+      toast.style.cssText = `
+        position:fixed; top:20px; left:50%; transform:translateX(-50%);
+        background:var(--char-black-2); color:var(--cream);
+        border:1px solid var(--line); border-radius:12px;
+        padding:14px 22px; font-family:'Vazirmatn', sans-serif;
+        font-size:14px; z-index:100; box-shadow:0 4px 20px rgba(0,0,0,0.5);
+        opacity:0; transition:opacity .3s ease;
+      `;
+      document.body.appendChild(toast);
+    }
+    toast.textContent = text;
+    toast.style.opacity = '1';
+    setTimeout(() => { toast.style.opacity = '0'; }, 3000);
   }
 </script>
 
