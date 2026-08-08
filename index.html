@@ -545,7 +545,7 @@
       <span>کۆی گشتی</span>
       <span class="rt-value" id="reviewTotal">0 دینار</span>
     </div>
-    <button class="review-send-btn" onclick="sendOrder()">ناردنی داواکردن بە واتساپ 📲</button>
+    <button class="review-send-btn" onclick="sendOrder()">ناردنی داواکردن 📲</button>
   </div>
 </div>
 
@@ -560,8 +560,6 @@
     });
   }, { threshold: 0.15 });
   cats.forEach(cat => observer.observe(cat));
-
-  const WHATSAPP_NUMBER = "9647750076767";
 
   // detect table number from URL, e.g. menu.html?table=5
   const params = new URLSearchParams(window.location.search);
@@ -646,15 +644,6 @@
       console.error(err);
       showToast("⚠️ کێشەیەک ڕوویدا، تکایە دووبارە هەوڵبدەرەوە");
     });
-
-    // also send via WhatsApp as a backup notification
-    let msg = "سڵاو، دەمەوێت ئەم داواکارییە بکەم:\n\n";
-    if(tableNum){
-      msg += `📍 مێزی ${tableNum}\n\n`;
-    }
-    msg += window._orderLines.join("\n");
-    msg += `\n\nکۆی گشتی: ${window._orderTotal.toLocaleString()} دینار`;
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 
   function resetCart(){
