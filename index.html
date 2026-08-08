@@ -219,6 +219,94 @@
       transform:none !important;
     }
   }
+
+  /* ============ ORDERING ============ */
+  .item{ flex-wrap:wrap; }
+  .item-info{ flex:1; }
+  .item-controls{
+    display:flex; align-items:center; gap:10px;
+  }
+  .qty-btn{
+    width:30px; height:30px; border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--char-black-2);
+    color:var(--cream);
+    font-size:17px; font-weight:700;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .2s ease, transform .15s ease;
+    line-height:1;
+    padding:0;
+  }
+  .qty-btn:hover{ background:var(--flame); color:var(--char-black); }
+  .qty-btn:active{ transform:scale(0.9); }
+  .qty-value{
+    min-width:20px; text-align:center;
+    font-weight:700; font-size:16px; color:var(--brass);
+  }
+
+  .call-fab{
+    position:fixed;
+    bottom:22px; left:22px;
+    width:52px; height:52px;
+    border-radius:50%;
+    background:var(--flame);
+    color:var(--char-black);
+    display:flex; align-items:center; justify-content:center;
+    font-size:24px;
+    text-decoration:none;
+    box-shadow:0 4px 18px rgba(232,98,44,0.45);
+    z-index:40;
+    animation:callPulse 2.6s ease-in-out infinite;
+  }
+  @keyframes callPulse{
+    0%,100%{ box-shadow:0 4px 18px rgba(232,98,44,0.45); }
+    50%{ box-shadow:0 4px 26px rgba(232,98,44,0.75); }
+  }
+
+  .cart-bar{
+    position:fixed;
+    bottom:0; left:0; right:0;
+    display:none;
+    align-items:center; justify-content:space-between;
+    gap:14px;
+    background:var(--char-black-2);
+    border-top:1px solid var(--line);
+    padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+    z-index:50;
+    box-shadow:0 -6px 24px rgba(0,0,0,0.4);
+  }
+  .cart-info{
+    font-family:'Vazirmatn', sans-serif;
+    font-size:14px; color:var(--cream-dim);
+  }
+  .cart-info b{ color:var(--brass); font-size:15px; }
+  .cart-send-btn{
+    background:var(--flame); color:var(--char-black);
+    border:none; border-radius:10px;
+    padding:12px 22px;
+    font-family:'Vazirmatn', sans-serif;
+    font-weight:700; font-size:14px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background .2s ease;
+  }
+  .cart-send-btn:hover{ background:var(--brass); }
+
+  .table-badge{
+    display:none;
+    align-items:center; gap:8px;
+    justify-content:center;
+    margin:0 auto 16px;
+    width:fit-content;
+    background:var(--char-black-2);
+    border:1px solid var(--line);
+    border-radius:30px;
+    padding:8px 18px;
+    font-family:'Vazirmatn', sans-serif;
+    font-size:14px; font-weight:600;
+    color:var(--brass);
+  }
 </style>
 </head>
 <body>
@@ -230,6 +318,7 @@
   <span class="ember-particle" style="left:80%; animation-delay:.9s; --drift:-14px;"></span>
   <div class="logo-wrap"><img src="images/logo.png" alt="Logo" class="restaurant-logo"></div>
   <h1>ڕیستۆرانتی یادی گەشتیاری</h1>
+  <div id="tableBadge" class="table-badge">🪑 <span id="tableNumber"></span></div>
   <div class="ember-line"></div>
 </div>
 
@@ -244,13 +333,27 @@
       <div class="cat-rule"></div>
     </div>
 
-    <div class="item">
-      <div class="item-name">قۆزی</div>
-      <div class="item-price">٢٠٬٠٠٠ دینار</div>
+    <div class="item" data-name="قۆزی" data-price="20000">
+      <div class="item-info">
+        <div class="item-name">قۆزی</div>
+        <div class="item-price">٢٠٬٠٠٠ دینار</div>
+      </div>
+      <div class="item-controls">
+        <button class="qty-btn" onclick="changeQty(this,-1)">−</button>
+        <span class="qty-value">0</span>
+        <button class="qty-btn" onclick="changeQty(this,1)">+</button>
+      </div>
     </div>
-    <div class="item">
-      <div class="item-name">نیوقۆزی</div>
-      <div class="item-price">١٠٬٠٠٠ دینار</div>
+    <div class="item" data-name="نیوقۆزی" data-price="10000">
+      <div class="item-info">
+        <div class="item-name">نیوقۆزی</div>
+        <div class="item-price">١٠٬٠٠٠ دینار</div>
+      </div>
+      <div class="item-controls">
+        <button class="qty-btn" onclick="changeQty(this,-1)">−</button>
+        <span class="qty-value">0</span>
+        <button class="qty-btn" onclick="changeQty(this,1)">+</button>
+      </div>
     </div>
   </div>
 
@@ -263,29 +366,71 @@
       <div class="cat-rule"></div>
     </div>
 
-    <div class="item">
-      <div class="item-name">کوڵاو</div>
-      <div class="item-price">٨٬٠٠٠ دینار</div>
+    <div class="item" data-name="کوڵاو" data-price="8000">
+      <div class="item-info">
+        <div class="item-name">کوڵاو</div>
+        <div class="item-price">٨٬٠٠٠ دینار</div>
+      </div>
+      <div class="item-controls">
+        <button class="qty-btn" onclick="changeQty(this,-1)">−</button>
+        <span class="qty-value">0</span>
+        <button class="qty-btn" onclick="changeQty(this,1)">+</button>
+      </div>
     </div>
-    <div class="item">
-      <div class="item-name">کەباب</div>
-      <div class="item-price">٦٬٠٠٠ دینار</div>
+    <div class="item" data-name="کەباب" data-price="6000">
+      <div class="item-info">
+        <div class="item-name">کەباب</div>
+        <div class="item-price">٦٬٠٠٠ دینار</div>
+      </div>
+      <div class="item-controls">
+        <button class="qty-btn" onclick="changeQty(this,-1)">−</button>
+        <span class="qty-value">0</span>
+        <button class="qty-btn" onclick="changeQty(this,1)">+</button>
+      </div>
     </div>
-    <div class="item">
-      <div class="item-name">گۆشت</div>
-      <div class="item-price">٥٬٠٠٠ دینار</div>
+    <div class="item" data-name="گۆشت" data-price="5000">
+      <div class="item-info">
+        <div class="item-name">گۆشت</div>
+        <div class="item-price">٥٬٠٠٠ دینار</div>
+      </div>
+      <div class="item-controls">
+        <button class="qty-btn" onclick="changeQty(this,-1)">−</button>
+        <span class="qty-value">0</span>
+        <button class="qty-btn" onclick="changeQty(this,1)">+</button>
+      </div>
     </div>
-    <div class="item">
-      <div class="item-name">سنگ</div>
-      <div class="item-price">٥٬٠٠٠ دینار</div>
+    <div class="item" data-name="سنگ" data-price="5000">
+      <div class="item-info">
+        <div class="item-name">سنگ</div>
+        <div class="item-price">٥٬٠٠٠ دینار</div>
+      </div>
+      <div class="item-controls">
+        <button class="qty-btn" onclick="changeQty(this,-1)">−</button>
+        <span class="qty-value">0</span>
+        <button class="qty-btn" onclick="changeQty(this,1)">+</button>
+      </div>
     </div>
-    <div class="item">
-      <div class="item-name">سادە</div>
-      <div class="item-price">٤٬٠٠٠ دینار</div>
+    <div class="item" data-name="سادە" data-price="4000">
+      <div class="item-info">
+        <div class="item-name">سادە</div>
+        <div class="item-price">٤٬٠٠٠ دینار</div>
+      </div>
+      <div class="item-controls">
+        <button class="qty-btn" onclick="changeQty(this,-1)">−</button>
+        <span class="qty-value">0</span>
+        <button class="qty-btn" onclick="changeQty(this,1)">+</button>
+      </div>
     </div>
-    <div class="item">
-      <div class="item-name">جگەر</div>
-      <div class="item-price">٥٬٠٠٠ دینار</div>
+    <div class="item" data-name="جگەر" data-price="5000">
+      <div class="item-info">
+        <div class="item-name">جگەر</div>
+        <div class="item-price">٥٬٠٠٠ دینار</div>
+      </div>
+      <div class="item-controls">
+        <button class="qty-btn" onclick="changeQty(this,-1)">−</button>
+        <span class="qty-value">0</span>
+        <button class="qty-btn" onclick="changeQty(this,1)">+</button>
+      </div>
     </div>
   </div>
 
@@ -293,6 +438,13 @@
 
 <div class="footer-note">
   ڕیستۆرانتی یادی گەشتیاری — بەخێربێن بۆ تامی ڕاستەقینەی خواردن
+</div>
+
+<a href="tel:+9647702428266" class="call-fab" aria-label="پەیوەندی تەلەفۆنی">📞</a>
+
+<div class="cart-bar" id="cartBar">
+  <div class="cart-info"><b id="cartCount">0</b> خواردن — <b id="cartTotal">0</b> دینار</div>
+  <button class="cart-send-btn" onclick="sendOrder()">ناردنی داواکردن 📲</button>
 </div>
 
 <script>
@@ -306,6 +458,56 @@
     });
   }, { threshold: 0.15 });
   cats.forEach(cat => observer.observe(cat));
+
+  const WHATSAPP_NUMBER = "9647702428266";
+
+  // detect table number from URL, e.g. menu.html?table=5
+  const params = new URLSearchParams(window.location.search);
+  const tableNum = params.get('table');
+  if(tableNum){
+    document.getElementById('tableNumber').textContent = `مێزی ${tableNum}`;
+    document.getElementById('tableBadge').style.display = 'flex';
+  }
+
+  function changeQty(btn, delta){
+    const item = btn.closest('.item');
+    const valueEl = item.querySelector('.qty-value');
+    let qty = parseInt(valueEl.textContent) + delta;
+    if(qty < 0) qty = 0;
+    valueEl.textContent = qty;
+    updateCart();
+  }
+
+  function updateCart(){
+    let count = 0, total = 0;
+    const lines = [];
+    document.querySelectorAll('.item').forEach(item => {
+      const qty = parseInt(item.querySelector('.qty-value').textContent);
+      if(qty > 0){
+        const name = item.dataset.name;
+        const price = parseInt(item.dataset.price);
+        count += qty;
+        total += qty * price;
+        lines.push(`${name} × ${qty} = ${(qty*price).toLocaleString()} دینار`);
+      }
+    });
+    document.getElementById('cartCount').textContent = count;
+    document.getElementById('cartTotal').textContent = total.toLocaleString();
+    document.getElementById('cartBar').style.display = count > 0 ? 'flex' : 'none';
+    window._orderLines = lines;
+    window._orderTotal = total;
+  }
+
+  function sendOrder(){
+    if(!window._orderLines || window._orderLines.length === 0) return;
+    let msg = "سڵاو، دەمەوێت ئەم داواکارییە بکەم:\n\n";
+    if(tableNum){
+      msg += `📍 مێزی ${tableNum}\n\n`;
+    }
+    msg += window._orderLines.join("\n");
+    msg += `\n\nکۆی گشتی: ${window._orderTotal.toLocaleString()} دینار`;
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+  }
 </script>
 
 </body>
